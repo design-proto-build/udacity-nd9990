@@ -29,12 +29,19 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   /**************************************************************************** */
 
+  // Filtered Image Endpoint
+  // Processes an image with a greyscale filter, then displays it
+  app.get("/filteredimage", async(req,res) => {
+    res.status(200).send("Filtered Image Endpoint");
+  });
+
+
   //! END @TODO1
   
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
-    res.send("try GET /filteredimage?image_url={{}}")
+    res.send("Instead, you should try GET /filteredimage?image_url={{url}}")
   } );
   
 
