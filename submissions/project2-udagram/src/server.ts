@@ -32,7 +32,11 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   // Filtered Image Endpoint
   // Processes an image with a greyscale filter, then displays it
   app.get("/filteredimage", async(req,res) => {
-    res.status(200).send("Filtered Image Endpoint");
+    // res.status(200).send("Filtered Image Endpoint");
+    let {image_url} = req.query;
+
+    let filteredImage = await filterImageFromURL(image_url);
+    res.status(200).sendFile(filteredImage);
   });
 
 
