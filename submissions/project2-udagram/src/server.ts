@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, deleteLocalFiles, tempDirectory} from './util/util';
+import fs from 'fs';
+import {Request, Response} from 'express';
 
 (async () => {
 
@@ -31,15 +33,40 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   // Filtered Image Endpoint
   // Processes an image with a greyscale filter, then displays it
-  app.get("/filteredimage", async(req,res) => {
+  app.get("/filteredimage", async(req:Request,res:Response) => {
     let {image_url} = req.query;
 
     if(!image_url){
       res.status(422).send("An image URL is required: /filteredimage?image_url={{url}}");
     }
     else {
-      let filteredImage = await filterImageFromURL(image_url);
-    res.status(200).sendFile(filteredImage);
+      await filterImageFromURL(image_url)
+        .then(image => {
+          res.status(200).sendFile(image, (sendError) => {
+            if(sendError) {
+              console.warn(`Could not send the file in the response | ${sendError}`);
+            }
+            else {
+              fs.readdir( tempDirectory, (readError, tempFiles) => {
+                let imageFiles:Array<string> = [];
+      
+                if(readError) {
+                  console.warn(`Could not read images from temp directory | ${readError}`);
+                }
+                else {
+                  tempFiles.map(file => {
+                    imageFiles.push(`${tempDirectory}/${file}`);
+                  });
+                  deleteLocalFiles( imageFiles );
+                }
+              })
+            }
+          });
+        })
+        .catch(error => {
+          console.warn(error);
+          res.sendStatus(404);
+        });
     }
   });
 
@@ -48,7 +75,7 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req:Request, res:Response ) => {
     res.send("Instead, you should try GET /filteredimage?image_url={{url}}");
   } );
   
